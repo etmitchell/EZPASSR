@@ -1,9 +1,13 @@
-'''
-Created on Jul 7, 2014
+"""
+Author: dasbutter
+This is a simple way to import and view EZPASS data lifted off of your EZPASS account.
+Currently only accounts for US Rt 90 in the Greater Boston Area.
 
-@author: EMITCHELL
-'''
+TODO: Add functionality to login, pull, and format data so it's seamless.
+      Integrate into a Django webapp.
+"""
 import csv, tkFileDialog, os
+from os.path import expanduser
 from Tkinter import Tk, Label 
 import matplotlib.pyplot as plt
 #import numpy as np
@@ -15,12 +19,8 @@ def graph_format(plt):
     plt.ylabel('Time',fontsize=12)
     
 def EZdata(path):
-    entertime = []
-    datedata = []
-    exittime = []
-    deltatime = []
-    totalmoney = 0
-    downtown = 0
+    entertime, datedata, exittime, deltatime = ([] for i in range(4))    
+    totalmoney = downtown = avgdelta = 0
     tformat = '%I:%M:%S %p'
     with open(path, 'rb') as csvfile:
         EZline = csv.reader(csvfile, delimiter=",")
@@ -38,9 +38,17 @@ def EZdata(path):
     dates = [dateutil.parser.parse(s) for s in datedata]
     exitt = [dateutil.parser.parse(s) for s in exittime]
     delta = [dateutil.parser.parse(s) for s in deltatime]
-    print "Total tolls paid over entire EZ-Pass history: " + str(totalmoney)
-    print "Total number of trips downtown: " + str(downtown)
     
+    for i in delta:
+        avgdelta += i.second
+    avgdelta = avgdelta/len(delta)
+    
+    print "Total tolls paid over entire EZ-Pass history: $%s" %totalmoney
+    print "Total number of trips to downtown Boston: %s" %downtown
+    print "Average time on tolled roads: %s minutes" %avgdelta
+    
+    #Plot the data on two graphs: time in and time out on left,
+    #time delta on right.
     plt.subplot(1,2,1)
     plt.plot(dates,etime,'ro')
     plt.hold(True)
@@ -59,7 +67,7 @@ window = Tk()
 window.title('EZ Pass Data Visualizer')
 #window.iconbitmap(os.path.normpath(os.getcwd()) + '\icon.ico')
 label = Label()
-file_path = tkFileDialog.askopenfilename(title='Select Spreadsheet',initialdir='C:\Users\emitchell\Downloads',multiple=True)
+file_path = tkFileDialog.askopenfilename(title='Select Spreadsheet',initialdir=expanduser("~\Downloads"),multiple=False)
 if file_path:
     for f in window.tk.splitlist(file_path):
         f = os.path.normpath(f)
