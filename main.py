@@ -1,5 +1,6 @@
 """
 Author: dasbutter
+EZPass operates in 15 U.S. States with 26 million transponders in use by 25 agencies.
 This is a simple way to import and view EZPASS data lifted off of your EZPASS account.
 Currently only accounts for US Rt 90 in the Greater Boston Area.
 
@@ -19,13 +20,13 @@ def graph_format(plt):
     plt.ylabel('Time',fontsize=12)
     
 def EZdata(path):
-    entertime, datedata, exittime, deltatime = ([] for i in range(4))    
-    totalmoney = downtown = avgdelta = 0
+    entertime, datedata, exittime, deltatime, deltamins = ([] for i in range(5))    
+    totalmoney = downtown = avgdelta = total = maximum = minimum = 0
     tformat = '%I:%M:%S %p'
     with open(path, 'rb') as csvfile:
         EZline = csv.reader(csvfile, delimiter=",")
         for row in EZline:
-            if row[5] not in ('-','Entry Time'): 
+            if row[5] not in ('-','Entry Time','','-0'): 
                 entertime.append(row[5])
                 datedata.append(row[0])
                 exittime.append(row[8])
@@ -40,12 +41,20 @@ def EZdata(path):
     delta = [dateutil.parser.parse(s) for s in deltatime]
     
     for i in delta:
-        avgdelta += i.second
-    avgdelta = avgdelta/len(delta)
+        total += i.minute
+        deltamins.append(i.minute)
+        if i.minute > maximum:
+            maximum = i.minute
+        if i.minute < minimum and i.minute != 0:
+            minimum = i.minute
+    avgdelta = (sum(deltamins)/len(deltamins))
     
     print "Total tolls paid over entire EZ-Pass history: $%s" %totalmoney
     print "Total number of trips to downtown Boston: %s" %downtown
     print "Average time on tolled roads: %s minutes" %avgdelta
+    print "Total time spend on tolled roads: %s minutes." %total + " ("+ str((total/60)) + ") hours."
+    print "Max time on tolled road was %s minutes." %maximum
+    print "Min time on tolled road was %s minutes." %minimum
     
     #Plot the data on two graphs: time in and time out on left,
     #time delta on right.
@@ -62,18 +71,20 @@ def EZdata(path):
     plt.title('Time Delta',fontsize=20)
     plt.tight_layout(pad=1.08, h_pad=None, w_pad=None, rect=None)
     plt.show()
-    
-window = Tk()
-window.title('EZ Pass Data Visualizer')
-#window.iconbitmap(os.path.normpath(os.getcwd()) + '\icon.ico')
-label = Label()
-file_path = tkFileDialog.askopenfilename(title='Select Spreadsheet',initialdir=expanduser("~\Downloads"),multiple=False)
-if file_path:
-    for f in window.tk.splitlist(file_path):
-        f = os.path.normpath(f)
-        EZdata(f)
-    #label = Label(window,text="Complete.")
-else:
-    label = Label(window,text="No files selected.")
-label.pack()
-window.mainloop()
+
+def main():    
+    window = Tk()
+    window.title('EZ Pass Data Visualizer')
+    #window.iconbitmap(os.path.normpath(os.getcwd()) + '\icon.ico')
+    label = Label()
+    file_path = tkFileDialog.askopenfilename(title='Select Spreadsheet',initialdir=expanduser("~\Downloads"),multiple=False)
+    if file_path:
+        for f in window.tk.splitlist(file_path):
+            f = os.path.normpath(f)
+            EZdata(f)
+        else:
+            label = Label(window,text="No files selected.")
+        label.pack()
+        window.mainloop()
+
+main()
