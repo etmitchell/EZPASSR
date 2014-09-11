@@ -2,7 +2,11 @@
 Author: dasbutter
 EZPass operates in 15 U.S. States with 26 million transponders in use by 25 agencies.
 This is a simple way to import and view EZPASS data lifted off of your EZPASS account.
+Note: EZPass only keeps entry time on file for 12 months. We ignore any timeframes
+without entry time.
 Currently only accounts for US Rt 90 in the Greater Boston Area.
+
+EZPASS is Property of its respective owners.
 
 TODO: Add functionality to login, pull, and format data so it's seamless.
       Integrate into a Django webapp.
@@ -22,6 +26,7 @@ def graph_format(plt):
 def EZdata(path):
     entertime, datedata, exittime, deltatime, deltamins = ([] for i in range(5))    
     totalmoney = downtown = avgdelta = total = maximum = minimum = 0
+    global etime,dates,exitt,delta
     tformat = '%I:%M:%S %p'
     with open(path, 'rb') as csvfile:
         EZline = csv.reader(csvfile, delimiter=",")
@@ -56,6 +61,9 @@ def EZdata(path):
     print "Max time on tolled road was %s minutes." %maximum
     print "Min time on tolled road was %s minutes." %minimum
     
+    plot()
+
+def plot():
     #Plot the data on two graphs: time in and time out on left,
     #time delta on right.
     plt.subplot(1,2,1)
