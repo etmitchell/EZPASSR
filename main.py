@@ -15,6 +15,7 @@ import csv, tkFileDialog, os
 from os.path import expanduser
 from Tkinter import Tk, Label 
 import matplotlib.pyplot as plt
+from matplotlib import dates
 #import numpy as np
 import dateutil
 from datetime import datetime
@@ -27,6 +28,7 @@ def EZdata(path):
     entertime, datedata, exittime, deltatime, deltamins = ([] for i in range(5))    
     totalmoney = downtown = avgdelta = total = maximum = minimum = 0
     global etime,dates,exitt,delta
+    
     tformat = '%I:%M:%S %p'
     with open(path, 'rb') as csvfile:
         EZline = csv.reader(csvfile, delimiter=",")
@@ -70,6 +72,7 @@ def plot():
     plt.plot(dates,etime,'ro')
     plt.hold(True)
     plt.plot(dates,exitt,'bo')
+    plt.xticks(rotation='vertical')
     graph_format(plt)
     plt.hold(True)
     plt.title(r'EZ Pass In/Out',fontsize=20)
@@ -78,6 +81,7 @@ def plot():
     graph_format(plt)
     plt.title('Time Delta',fontsize=20)
     plt.tight_layout(pad=1.08, h_pad=None, w_pad=None, rect=None)
+    plt.xticks(rotation='vertical')
     plt.show()
 
 def main():    
